@@ -1,3 +1,4 @@
+package sec01;
 //Kiosk Ver2
 public class KioskMain {
 	

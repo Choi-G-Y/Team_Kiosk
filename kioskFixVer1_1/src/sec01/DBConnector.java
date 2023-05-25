@@ -1,24 +1,32 @@
+package sec01;
 //데이터베이스 연결을 위한 클래스입니다. 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 
 public class DBConnector {
     private Connection connection;
-    private Statement statement;
+    private PreparedStatement statement;
 
     public DBConnector() {
-        try {
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            String url = "jdbc:oracle:thin:@localhost:1521:XE"; // 데이터베이스 연결 정보 설정
-            connection = DriverManager.getConnection(url, "hr", "12345"); // 사용자명과 비밀번호는 실제 DB 계정 정보로 변경해야 합니다.
-            statement = connection.createStatement();
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
-    }
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			
+			//연결하기
+			connection = DriverManager.getConnection(
+					"jdbc:oracle:thin:@localhost:1521/xe",
+					"parrot",
+					//"hr",
+					"12345"
+					);
+//			System.out.println("연결확인");				//연결확인용 콘솔출력
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 
     public ResultSet executeQuery(String query) throws SQLException {
         return statement.executeQuery(query);
@@ -28,7 +36,8 @@ public class DBConnector {
         return statement.executeUpdate(query);
     }
 
-    public void close() {
+    
+    public void exit() {		//라이브러리에 존재하는 close() 메서드들과 혼동할 여지가 있으므로 exit() 메서드로 이름을 바꿀 것을 제안
         try {
             if (statement != null) {
                 statement.close();
@@ -41,7 +50,7 @@ public class DBConnector {
         }
     }
 
-    public Connection getConnection() {
+    public Connection getConnection() {			//무슨 필요로 만든 getter 메서드인지 파악 필요
         return connection;
     }
 

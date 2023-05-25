@@ -1,3 +1,4 @@
+package sec01;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +11,7 @@ public class Kiosk {
     private DBConnector dbConnector;
     private Scanner scanner;
     private int loginAttempt;
+    private String loginId; //로그인 값을 저장하는 문자열
 
     public Kiosk() {
         dbConnector = new DBConnector();
@@ -18,30 +20,32 @@ public class Kiosk {
     }
 
     public void start() {
-        while (true) {
-            System.out.println("========== Kiosk ==========");
-            System.out.println("1. 로그인");
-            System.out.println("2. 회원가입");
-            System.out.println("0. 종료");
-            System.out.print("메뉴 선택: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // 버퍼 비우기
+    	System.out.println(" ");
+        System.out.println("========== Kiosk ==========");
+        System.out.println("1. 로그인");
+        System.out.println("2. 회원가입");
+        System.out.println("0. 종료");
+        System.out.print("메뉴 선택: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // 버퍼 비우기
 
-            switch (choice) {
-            case 1:
-                login();
-                break;
-            case 2:
-                register();
-                break;
-            case 0:
-                System.out.println("프로그램을 종료합니다.");
-                return;
-            default:
-                System.out.println("잘못된 메뉴 선택입니다.");
+        switch (choice) {
+        case 1:
+            login();
+            break;
+        case 2:
+            register();
+            break;
+        case 0:
+            System.out.println("프로그램을 종료합니다.");
+            break;
+        default:
+            System.out.println("잘못된 메뉴 선택입니다.");
+            start();
         }
     }
-}
+    
+    
     private void login() {
         System.out.print("아이디를 입력하세요: ");
         String id = scanner.nextLine();
@@ -258,7 +262,7 @@ public class Kiosk {
             PreparedStatement statement = dbConnector.getConnection().prepareStatement("INSERT INTO k_member (id, password, cash) VALUES (?, ?, ?)");
             statement.setString(1, id);
             statement.setString(2, password);
-            statement.setDouble(3, 0.0); // 초기 보유 현금은 0으로 설정
+            statement.setInt(3, 0); // 초기 보유 현금은 0으로 설정
             int insertedRows = statement.executeUpdate();
             statement.close();
             return insertedRows > 0;
@@ -266,13 +270,5 @@ public class Kiosk {
             e.printStackTrace();
         }
         return false;
-    }
-
-    
-   
-
-    public static void main(String[] args) {
-        Kiosk kiosk = new Kiosk();
-        kiosk.start();
     }
 }

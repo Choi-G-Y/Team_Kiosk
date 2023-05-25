@@ -40,4 +40,11 @@ public class DBConnector {
             e.printStackTrace();
         }
     }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+
+
 }

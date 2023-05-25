@@ -1,7 +1,10 @@
-// Kiosk.java
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
+
+// Kiosk.java
+
 
 public class Kiosk {
     private DBConnector dbConnector;
@@ -18,24 +21,27 @@ public class Kiosk {
         while (true) {
             System.out.println("========== Kiosk ==========");
             System.out.println("1. 로그인");
+            System.out.println("2. 회원가입");
             System.out.println("0. 종료");
             System.out.print("메뉴 선택: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // 버퍼 비우기
 
             switch (choice) {
-                case 1:
-                    login();
-                    break;
-                case 0:
-                    System.out.println("프로그램을 종료합니다.");
-                    return;
-                default:
-                    System.out.println("잘못된 메뉴 선택입니다.");
-            }
+            case 1:
+                login();
+                break;
+            case 2:
+                register();
+                break;
+            case 0:
+                System.out.println("프로그램을 종료합니다.");
+                return;
+            default:
+                System.out.println("잘못된 메뉴 선택입니다.");
         }
     }
-
+}
     private void login() {
         System.out.print("아이디를 입력하세요: ");
         String id = scanner.nextLine();
@@ -217,6 +223,53 @@ public class Kiosk {
         }
         return false;
     }
+    
+    private void register() {
+        System.out.print("사용할 아이디를 입력하세요: ");
+        String id = scanner.nextLine();
+        System.out.print("사용할 비밀번호를 입력하세요: ");
+        String password = scanner.nextLine();
+
+        if (isIdAvailable(id)) {
+            if (createUser(id, password)) {
+                System.out.println("회원가입이 완료되었습니다. 로그인해주세요.");
+            } else {
+                System.out.println("회원가입에 실패했습니다.");
+            }
+        } else {
+            System.out.println("이미 사용 중인 아이디입니다. 다른 아이디를 선택해주세요.");
+        }
+    }
+    
+    private boolean isIdAvailable(String id) {
+        try {
+            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM k_member WHERE id = '" + id + "'");
+            boolean isAvailable = !resultSet.next(); // 이미 존재하는 경우 false 반환
+            resultSet.close();
+            return isAvailable;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    private boolean createUser(String id, String password) {
+        try {
+            PreparedStatement statement = dbConnector.getConnection().prepareStatement("INSERT INTO k_member (id, password, cash) VALUES (?, ?, ?)");
+            statement.setString(1, id);
+            statement.setString(2, password);
+            statement.setDouble(3, 0.0); // 초기 보유 현금은 0으로 설정
+            int insertedRows = statement.executeUpdate();
+            statement.close();
+            return insertedRows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    
+   
 
     public static void main(String[] args) {
         Kiosk kiosk = new Kiosk();

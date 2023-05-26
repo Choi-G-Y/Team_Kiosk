@@ -1,4 +1,4 @@
-package sec01_3;
+package sec01_4;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,6 +80,8 @@ public class Kiosk extends DBConnector {
                 e.printStackTrace();
                 exit();
                 start();
+            } finally {
+            	System.out.println("어서오세요, "+loginId+"님. 무엇을 도와드릴까요?");	//loginId 값 부여 확인용
             }
 
             loginAttempt++; // 로그인 시도 횟수 증가
@@ -201,7 +203,9 @@ public class Kiosk extends DBConnector {
 
     private boolean isProductAvailable(int productId, int quantity) {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
+            
+        	
+        	ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
             boolean isAvailable = resultSet.next();
             resultSet.close();
             return isAvailable;

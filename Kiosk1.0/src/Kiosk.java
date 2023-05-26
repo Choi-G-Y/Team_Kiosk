@@ -2,6 +2,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 // Kiosk.java
 
@@ -128,6 +130,10 @@ public class Kiosk {
             if (userCash >= totalPrice) {
                 if (updateProductQuantity(productId, quantity) && updateUserCash(userCash - totalPrice)) {
                     System.out.println("상품을 구매하였습니다.");
+                    
+                 // 영수증 출력
+                    printReceipt(productId, quantity, totalPrice);
+
 
                     // 구매 후 상품 재고 확인
                     System.out.println("구매 후 상품 재고:");
@@ -145,6 +151,20 @@ public class Kiosk {
             System.out.println("상품의 재고가 부족합니다.");
         }
     }
+    
+    private void printReceipt(int productId, int quantity, double totalPrice) {
+        // 현재 시간을 얻기 위한 날짜 포맷 지정
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentTime = dateFormat.format(new Date());
+
+        System.out.println("\n========== 영수증 ==========");
+        System.out.println("구매 상품 ID: " + productId);
+        System.out.println("구매 수량: " + quantity);
+        System.out.println("총 가격: " + totalPrice);
+        System.out.println("구매 시간: " + currentTime);
+        System.out.println("============================");
+    }
+
     
     
 

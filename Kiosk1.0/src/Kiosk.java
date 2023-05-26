@@ -1,9 +1,11 @@
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
 
 // Kiosk.java
 
@@ -116,28 +118,73 @@ public class Kiosk {
         System.out.println("전체 상품 목록 및 재고:");
         displayProducts();
 
-        System.out.print("구매할 상품 ID를 입력하세요: ");
-        int productId = scanner.nextInt();
-        scanner.nextLine(); // 버퍼 비우기
-        System.out.print("구매 수량을 입력하세요: ");
-        int quantity = scanner.nextInt();
+        System.out.println("구매할 품목 개수를 입력하세요:");
+        int itemCount = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
 
-        if (isProductAvailable(productId, quantity)) {
-            double totalPrice = calculateTotalPrice(productId, quantity);
+        List<Integer> productIds = new ArrayList<>();
+        List<Integer> quantities = new ArrayList<>();
+
+        for (int i = 0; i < itemCount; i++) {
+            System.out.print("구매할 상품 ID를 입력하세요: ");
+            int productId = scanner.nextInt();
+            scanner.nextLine(); // 버퍼 비우기
+            System.out.print("구매 수량을 입력하세요: ");
+            int quantity = scanner.nextInt();
+            scanner.nextLine(); // 버퍼 비우기
+
+            productIds.add(productId);
+            quantities.add(quantity);
+        }
+
+        boolean allProductsAvailable = true;
+        double totalPrice = 0.0;
+
+        for (int i = 0; i < itemCount; i++) {
+            int productId = productIds.get(i);
+            int quantity = quantities.get(i);
+
+            if (!isProductAvailable(productId, quantity)) {
+                allProductsAvailable = false;
+                break;
+            }
+
+            totalPrice += calculateTotalPrice(productId, quantity);
+        }
+
+        if (allProductsAvailable) {
             double userCash = getUserCash();
 
             if (userCash >= totalPrice) {
-                if (updateProductQuantity(productId, quantity) && updateUserCash(userCash - totalPrice)) {
-                    System.out.println("상품을 구매하였습니다.");
-                    
-                 // 영수증 출력
-                    printReceipt(productId, quantity, totalPrice);
+                boolean success = true;
 
+                for (int i = 0; i < itemCount; i++) {
+                    int productId = productIds.get(i);
+                    int quantity = quantities.get(i);
+
+                    if (!updateProductQuantity(productId, quantity)) {
+                        success = false;
+                        break;
+                    }
+                }
+
+                if (success && updateUserCash(userCash - totalPrice)) {
+                    System.out.println("상품을 구매하였습니다.");
+
+                    // 영수증 출력
+                    for (int i = 0; i < itemCount; i++) {
+                        int productId = productIds.get(i);
+                        int quantity = quantities.get(i);
+                        double itemPrice = calculateTotalPrice(productId, quantity);
+                        printReceipt(productId, quantity, itemPrice);
+                    }
 
                     // 구매 후 상품 재고 확인
                     System.out.println("구매 후 상품 재고:");
-                    displayProductQuantity(productId);
+                    for (int i = 0; i < itemCount; i++) {
+                        int productId = productIds.get(i);
+                        displayProductQuantity(productId);
+                    }
 
                     // 보유 현금 확인
                     System.out.println("보유 현금: " + getUserCash());

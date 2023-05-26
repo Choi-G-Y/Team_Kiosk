@@ -14,3 +14,7 @@ plz Ver 2
 Plz ver3
 
 장바구니 기능 추가
+
+plz Ver3.1
+
+사용자끼리 cash를 공유하던 오류수정

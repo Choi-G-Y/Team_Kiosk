@@ -14,6 +14,7 @@ public class Kiosk {
     private DBConnector dbConnector;
     private Scanner scanner;
     private int loginAttempt;
+    private String loggedInUserId;
 
     public Kiosk() {
         dbConnector = new DBConnector();
@@ -55,6 +56,7 @@ public class Kiosk {
         if (isLoginValid(id, password)) {
             System.out.println("로그인 성공!");
             loginAttempt = 0;
+            loggedInUserId = id;  // 로그인된 사용자의 아이디 설정
             showMenu();
         } else {
             loginAttempt++;
@@ -215,18 +217,18 @@ public class Kiosk {
     
     
 
-    public void rechargeCash() {
+    private void rechargeCash() {
         System.out.print("충전할 금액을 입력하세요: ");
         double cash = scanner.nextDouble();
         scanner.nextLine(); // 버퍼 비우기
 
-        if (updateUserCash(getUserCash() + cash)) {
+        double userCash = getUserCash();
+        if (updateUserCash(userCash + cash)) {
             System.out.println("현금을 충전하였습니다.");
         } else {
             System.out.println("현금 충전에 실패했습니다.");
         }
     }
-
     private boolean isLoginValid(String id, String password) {
         try {
             ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM k_member WHERE id = '" + id + "' AND password = '" + password + "'");
@@ -267,7 +269,7 @@ public class Kiosk {
 
     private double getUserCash() {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT cash FROM k_member");
+            ResultSet resultSet = dbConnector.executeQuery("SELECT cash FROM k_member WHERE id = '" + loggedInUserId + "'");
             if (resultSet.next()) {
                 double cash = resultSet.getDouble("cash");
                 resultSet.close();
@@ -291,7 +293,11 @@ public class Kiosk {
 
     private boolean updateUserCash(double cash) {
         try {
-            int updatedRows = dbConnector.executeUpdate("UPDATE k_member SET cash = " + cash);
+            PreparedStatement statement = dbConnector.getConnection().prepareStatement("UPDATE k_member SET cash = ? WHERE id = ?");
+            statement.setDouble(1, cash);
+            statement.setString(2, loggedInUserId);
+            int updatedRows = statement.executeUpdate();
+            statement.close();
             return updatedRows > 0;
         } catch (SQLException e) {
             e.printStackTrace();

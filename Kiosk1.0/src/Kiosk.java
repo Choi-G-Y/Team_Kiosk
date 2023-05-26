@@ -110,6 +110,10 @@ public class Kiosk {
     }
 
     public void purchaseProduct() {
+        // Display all product information
+        System.out.println("전체 상품 목록 및 재고:");
+        displayProducts();
+
         System.out.print("구매할 상품 ID를 입력하세요: ");
         int productId = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
@@ -124,6 +128,10 @@ public class Kiosk {
             if (userCash >= totalPrice) {
                 if (updateProductQuantity(productId, quantity) && updateUserCash(userCash - totalPrice)) {
                     System.out.println("상품을 구매하였습니다.");
+
+                    // 구매 후 상품 재고 확인
+                    System.out.println("구매 후 상품 재고:");
+                    displayProductQuantity(productId);
 
                     // 보유 현금 확인
                     System.out.println("보유 현금: " + getUserCash());
@@ -266,6 +274,19 @@ public class Kiosk {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    private void displayProductQuantity(int productId) {
+        try {
+            ResultSet resultSet = dbConnector.executeQuery("SELECT quantity FROM product WHERE product_id = " + productId);
+            if (resultSet.next()) {
+                int quantity = resultSet.getInt("quantity");
+                System.out.println("상품 ID: " + productId + ", 재고: " + quantity);
+            }
+            resultSet.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     

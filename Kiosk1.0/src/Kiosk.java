@@ -5,7 +5,6 @@ import java.util.Scanner;
 
 // Kiosk.java
 
-
 public class Kiosk {
     private DBConnector dbConnector;
     private Scanner scanner;
@@ -22,26 +21,31 @@ public class Kiosk {
             System.out.println("========== Kiosk ==========");
             System.out.println("1. 로그인");
             System.out.println("2. 회원가입");
+            System.out.println("3. 관리자 모드");
             System.out.println("0. 종료");
             System.out.print("메뉴 선택: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // 버퍼 비우기
 
             switch (choice) {
-            case 1:
-                login();
-                break;
-            case 2:
-                register();
-                break;
-            case 0:
-                System.out.println("프로그램을 종료합니다.");
-                return;
-            default:
-                System.out.println("잘못된 메뉴 선택입니다.");
+                case 1:
+                    login();
+                    break;
+                case 2:
+                    register();
+                    break;
+                case 3:
+                    adminMode();
+                    break;
+                case 0:
+                    System.out.println("프로그램을 종료합니다.");
+                    return;
+                default:
+                    System.out.println("잘못된 메뉴 선택입니다.");
+            }
         }
     }
-}
+
     private void login() {
         System.out.print("아이디를 입력하세요: ");
         String id = scanner.nextLine();
@@ -101,7 +105,8 @@ public class Kiosk {
                 String productName = resultSet.getString("product_name");
                 int price = resultSet.getInt("price");
                 int quantity = resultSet.getInt("quantity");
-                System.out.println("상품 ID: " + productId + ", 상품명: " + productName + ", 가격: " + price + ", 재고: " + quantity);
+                System.out.println(
+                        "상품 ID: " + productId + ", 상품명: " + productName + ", 가격: " + price + ", 재고: " + quantity);
             }
             resultSet.close();
         } catch (SQLException e) {
@@ -110,10 +115,6 @@ public class Kiosk {
     }
 
     public void purchaseProduct() {
-        // Display all product information
-        System.out.println("전체 상품 목록 및 재고:");
-        displayProducts();
-
         System.out.print("구매할 상품 ID를 입력하세요: ");
         int productId = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
@@ -129,10 +130,6 @@ public class Kiosk {
                 if (updateProductQuantity(productId, quantity) && updateUserCash(userCash - totalPrice)) {
                     System.out.println("상품을 구매하였습니다.");
 
-                    // 구매 후 상품 재고 확인
-                    System.out.println("구매 후 상품 재고:");
-                    displayProductQuantity(productId);
-
                     // 보유 현금 확인
                     System.out.println("보유 현금: " + getUserCash());
                 } else {
@@ -145,8 +142,6 @@ public class Kiosk {
             System.out.println("상품의 재고가 부족합니다.");
         }
     }
-    
-    
 
     public void rechargeCash() {
         System.out.print("충전할 금액을 입력하세요: ");
@@ -162,7 +157,8 @@ public class Kiosk {
 
     private boolean isLoginValid(String id, String password) {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM k_member WHERE id = '" + id + "' AND password = '" + password + "'");
+            ResultSet resultSet = dbConnector
+                    .executeQuery("SELECT * FROM k_member WHERE id = '" + id + "' AND password = '" + password + "'");
             boolean isValid = resultSet.next();
             resultSet.close();
             return isValid;
@@ -174,7 +170,8 @@ public class Kiosk {
 
     private boolean isProductAvailable(int productId, int quantity) {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
+            ResultSet resultSet = dbConnector.executeQuery(
+                    "SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
             boolean isAvailable = resultSet.next();
             resultSet.close();
             return isAvailable;
@@ -214,7 +211,8 @@ public class Kiosk {
 
     private boolean updateProductQuantity(int productId, int quantity) {
         try {
-            int updatedRows = dbConnector.executeUpdate("UPDATE product SET quantity = quantity - " + quantity + " WHERE product_id = " + productId);
+            int updatedRows = dbConnector.executeUpdate(
+                    "UPDATE product SET quantity = quantity - " + quantity + " WHERE product_id = " + productId);
             return updatedRows > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -231,7 +229,7 @@ public class Kiosk {
         }
         return false;
     }
-    
+
     private void register() {
         System.out.print("사용할 아이디를 입력하세요: ");
         String id = scanner.nextLine();
@@ -248,7 +246,7 @@ public class Kiosk {
             System.out.println("이미 사용 중인 아이디입니다. 다른 아이디를 선택해주세요.");
         }
     }
-    
+
     private boolean isIdAvailable(String id) {
         try {
             ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM k_member WHERE id = '" + id + "'");
@@ -260,10 +258,11 @@ public class Kiosk {
         }
         return false;
     }
-    
+
     private boolean createUser(String id, String password) {
         try {
-            PreparedStatement statement = dbConnector.getConnection().prepareStatement("INSERT INTO k_member (id, password, cash) VALUES (?, ?, ?)");
+            PreparedStatement statement = dbConnector.getConnection()
+                    .prepareStatement("INSERT INTO k_member (id, password, cash) VALUES (?, ?, ?)");
             statement.setString(1, id);
             statement.setString(2, password);
             statement.setDouble(3, 0.0); // 초기 보유 현금은 0으로 설정
@@ -275,25 +274,77 @@ public class Kiosk {
         }
         return false;
     }
-    
-    private void displayProductQuantity(int productId) {
+
+    private boolean isAdminMode(String id, String password) {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT quantity FROM product WHERE product_id = " + productId);
-            if (resultSet.next()) {
-                int quantity = resultSet.getInt("quantity");
-                System.out.println("상품 ID: " + productId + ", 재고: " + quantity);
-            }
+            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM admin WHERE id = '" + id + "' AND password = '" + password + "'");
+            boolean isValid = resultSet.next();
             resultSet.close();
+            return isValid;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    
-   
+    private void adminMode() {
+        System.out.print("관리자 아이디를 입력하세요: ");
+        String id = scanner.nextLine();
+        System.out.print("관리자 비밀번호를 입력하세요: ");
+        String password = scanner.nextLine();
 
-    public static void main(String[] args) {
-        Kiosk kiosk = new Kiosk();
-        kiosk.start();
+        if (isAdminMode(id, password)) {
+            System.out.println("관리자 모드로 전환되었습니다.");
+            while (true) {
+                System.out.println("\n========== 관리자 모드 ==========");
+                System.out.println("1. 재고 채우기");
+                System.out.println("2. 재고 확인");
+                System.out.println("0. 돌아가기");
+                System.out.print("메뉴 선택: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // 버퍼 비우기
+
+                switch (choice) {
+                    case 1:
+                        fillStock();
+                        break;
+                    case 2:
+                        displayProducts();
+                        break;
+                    case 0:
+                        System.out.println("관리자 모드를 종료합니다.");
+                        return;
+                    default:
+                        System.out.println("잘못된 메뉴 선택입니다.");
+                }
+            }
+        } else {
+            System.out.println("관리자 아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
+    }
+
+
+    private void fillStock() {
+        System.out.print("추가할 상품 ID를 입력하세요: ");
+        int productId = scanner.nextInt();
+        scanner.nextLine(); // 버퍼 비우기
+        System.out.print("추가할 수량을 입력하세요: ");
+        int quantity = scanner.nextInt();
+        scanner.nextLine(); // 버퍼 비우기
+
+        try {
+            PreparedStatement statement = dbConnector.getConnection().prepareStatement("UPDATE product SET quantity = quantity + ? WHERE product_id = ?");
+            statement.setInt(1, quantity);
+            statement.setInt(2, productId);
+            int rowsUpdated = statement.executeUpdate();
+            statement.close();
+            if (rowsUpdated > 0) {
+                System.out.println("재고를 추가하였습니다.");
+            } else {
+                System.out.println("상품 ID를 확인하세요.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

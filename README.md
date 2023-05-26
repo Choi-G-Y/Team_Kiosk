@@ -1,16 +1,16 @@
 # Team_Kiosk
 
-Java와 오라클(XE) DB를 연동하여 데이터 관리가 가능한 Kiosk프로그램
+<h3>Java와 오라클(XE) DB를 연동하여 데이터 관리가 가능한 Kiosk프로그램</h3>
 Java와 오라클(XE)만 사용했으며 인터페이스 기능은 콘솔 이용
 
 오라클 XE를 이용하여 Java와 DB연결
 
 DBConnector클래스에서 주석을 확인하여 계정과 비밀번호 수정 후 Save.
 
-관리자 SQL문 = 관리자 모드 실행에 필요한 SQL문
-k_member 관련 SQL문 = 로그인 및 회원가입에 필요한 SQL문
-product 관련 SQL문 = product관련 명령에 필요한 SQL문
-
+관리자 SQL문 = 관리자 모드 실행에 필요한 SQL문<br>
+k_member 관련 SQL문 = 로그인 및 회원가입에 필요한 SQL문<br>
+product 관련 SQL문 = product관련 명령에 필요한 SQL문<br>
+<pre>
 관리자 모드 관련 SQL문
 
 -------관리자모드 table 생성-------
@@ -21,6 +21,7 @@ CREATE TABLE admin (
 );
 -------관리자모드 계정 생성-------
 INSERT INTO admin (id, password) VALUES ('admin', '12345');
+
 
 
 ===========================================================
@@ -69,3 +70,4 @@ VALUES(6, '빨래세제', 15000, 10);
 
 INSERT INTO product(product_id, product_name, price, quantity)
 VALUES(7, '샴푸', 12000, 10);
+</pre>

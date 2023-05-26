@@ -1,6 +1,6 @@
 # Team_Kiosk
 
-Java와 오라클(XE) DB를 연동하여 데이터 관리가 가능한 <p style="color:red">Kiosk프로그램</p>
+Java와 오라클(XE) DB를 연동하여 데이터 관리가 가능한 Kiosk프로그램
 Java와 오라클(XE)만 사용했으며 인터페이스 기능은 콘솔 이용
 
 오라클 XE를 이용하여 Java와 DB연결

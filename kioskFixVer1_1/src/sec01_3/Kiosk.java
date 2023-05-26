@@ -1,4 +1,4 @@
-package sec01_2;
+package sec01_3;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,7 +11,7 @@ public class Kiosk extends DBConnector {
 	Scanner scanner = new Scanner(System.in);				//Kiosk() 생산자에서 필드전역 선언으로 이동
     private DBConnector dbConnector;
     private int loginAttempt;
-    private String loginId; //로그인 값을 저장하는 문자열
+    private String loginId=null; //로그인 값을 저장하는 문자열
 
     
     public Kiosk() {
@@ -45,25 +45,81 @@ public class Kiosk extends DBConnector {
         }
     }
     
-    
-    private void login() {
-        System.out.print("아이디를 입력하세요: ");
-        String id = scanner.nextLine();
-        System.out.print("비밀번호를 입력하세요: ");
-        String password = scanner.nextLine();
+    /*
+	public void login() {
+		KMember kmember = new KMember();
+		System.out.println("[로그인]");
+		System.out.print("아이디: ");
+		kmember.setId(scanner.nextLine());
+		System.out.print("비밀번호: ");
+		kmember.setPassword(scanner.nextLine());
 
-        if (isLoginValid(id, password)) {
-            System.out.println("로그인 성공!");
-            loginAttempt = 0;
-            showMenu();
-        } else {
-            loginAttempt++;
-            System.out.println("로그인 실패!");
-            if (loginAttempt >= 3) {
-                System.out.println("로그인 시도 횟수가 초과되었습니다. 시스템을 종료합니다.");
-                System.exit(0);
+		try {
+			String query = "SELECT password FROM k_member WHERE id= ?";
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setString(1, kmember.getId());
+			ResultSet rs = statement.executeQuery();
+			if(rs.next()) {
+				String dbPassword = rs.getString("password");
+				if(dbPassword.equals(kmember.getPassword())) {
+					loginId = kmember.getId();
+				} else {System.out.println("비밀번호가 일치하지 않습니다.");}
+				} else {System.out.println("아이디가 존재하지 않습니다.");}
+			System.out.println("로그인 성공!");
+			rs.close();
+			statement.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+//					exit();
+			start();
+		}
+		showMenu();
+	}
+	*/
+	
+    public void login() {
+        loginAttempt = 0; // 로그인 시도 횟수
+        boolean loggedIn = false; // 로그인 여부
+
+        while (!loggedIn && loginAttempt < 3) {
+            KMember kmember = new KMember();
+            System.out.println("[로그인]");
+            System.out.print("아이디: ");
+            kmember.setId(scanner.nextLine());
+            System.out.print("비밀번호: ");
+            kmember.setPassword(scanner.nextLine());
+
+            try {
+                String query = "SELECT password FROM k_member WHERE id= ?";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, kmember.getId());
+                ResultSet rs = statement.executeQuery();
+                if (rs.next()) {
+                    String dbPassword = rs.getString("password");
+                    if (dbPassword.equals(kmember.getPassword())) {
+                        loggedIn = true; // 로그인 성공
+                        loginId = kmember.getId();
+                    } else {
+                        System.out.println("비밀번호가 일치하지 않습니다.");
+                    }
+                } else {
+                    System.out.println("아이디가 존재하지 않습니다.");
+                }
+                rs.close();
+                statement.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                exit();
+                start();
             }
+
+            loginAttempt++; // 로그인 시도 횟수 증가
         }
+
+        if (!loggedIn) {
+            start(); // 3번 연속 실패시 start() 메서드 호출
+        }
+        showMenu();
     }
 
     private void showMenu() {
@@ -156,17 +212,23 @@ public class Kiosk extends DBConnector {
         }
     }
 
-    private boolean isLoginValid(String id, String password) {
-        try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM k_member WHERE id = '" + id + "' AND password = '" + password + "'");
-            boolean isValid = resultSet.next();
-            resultSet.close();
-            return isValid;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    private boolean isLoginValid(String id, String password) {
+//        try {
+//            String query = "" + 
+//            		"SELECT * FROM k_member"+
+//            		" WHERE id = ?, password = ?";
+//        	PreparedStatement statement = connection.prepareStatement(query); 
+//        	ResultSet resultSet = statement.executeQuery();
+//        	statement.setString(1, id);
+//        	statement.setString(2, password);
+//            boolean isValid = resultSet.next();
+//            resultSet.close();
+//            return isValid;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
     private boolean isProductAvailable(int productId, int quantity) {
         try {

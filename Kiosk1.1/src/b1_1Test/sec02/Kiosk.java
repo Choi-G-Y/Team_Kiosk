@@ -2,19 +2,26 @@ package b1_1Test.sec02;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
+
+import b1_1Test.sec02_1.Product;
 
 // Kiosk.java
 
 
 public class Kiosk extends DBConnector {
-	Scanner scanner = new Scanner(System.in);				//Kiosk() 생산자에서 필드전역 선언으로 이동
+	private Scanner scanner;				//Kiosk() 생산자에서 필드전역 선언으로 이동
     private DBConnector dbConnector;
     private int loginAttempt;
     private String loginId=null; //로그인 값을 저장하는 문자열
 
     
     public Kiosk() {
+    	scanner = new Scanner(System.in);
         dbConnector = new DBConnector();
         loginAttempt = 0;
     }
@@ -102,7 +109,7 @@ public class Kiosk extends DBConnector {
     }
 
     private void showMenu() {
-    	while(true) {
+    	
 	        System.out.println("\n========== 메뉴 ==========");
 	        System.out.println("1. 물품 구매");
 	        System.out.println("2. 재고 확인");
@@ -118,6 +125,7 @@ public class Kiosk extends DBConnector {
 	                break;
 	            case 2:
 	                displayProducts();
+	                showMenu();
 	                break;
 	            case 3:
 	                rechargeCash();
@@ -127,7 +135,7 @@ public class Kiosk extends DBConnector {
 	                start();
 	            default:
 	                System.out.println("잘못된 메뉴 선택입니다.");
-	        }
+	        
     	}
     }
 
@@ -156,7 +164,7 @@ public class Kiosk extends DBConnector {
 			}
 			resultSet.close();
         }catch(SQLException e) {
-        	//e.printStackTrace();
+        	e.printStackTrace();
         	System.out.println("문제가 발생하여 재고를 확인하실 수 없습니다. 카운터에 문의해주세요.");
         }
     }
@@ -164,36 +172,211 @@ public class Kiosk extends DBConnector {
     
 
     public void purchaseProduct() {
-        System.out.print("구매할 상품 ID를 입력하세요: ");
-        int productId = scanner.nextInt();
+        // Display all product information
+        
+     	Product product = new Product();
+     	
+        int totalPrice = 0;
+    	
+
+ 		List<Integer> productIds = new ArrayList<>();
+ 		List<Integer> quantities = new ArrayList<>();
+
+ 		
+ 		
+ 		System.out.println("**전체 상품 목록 및 재고**");
+ 		displayProducts();
+ 		
+        System.out.println("구매할 품목 개수를 입력하세요:");
+        int itemCount = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
-        System.out.print("구매 수량을 입력하세요: ");
-        int quantity = scanner.nextInt();
-        scanner.nextLine(); // 버퍼 비우기
+        
+ 		for (int i = 0; i < itemCount; i++) {
+            System.out.print("구매할 상품 ID를 입력하세요: ");
+            int productId = scanner.nextInt();
+            scanner.nextLine(); // 버퍼 비우기
+            System.out.print("구매 수량을 입력하세요: ");
+            int quantity = scanner.nextInt();
+            scanner.nextLine(); // 버퍼 비우기
 
-        if (isProductAvailable(productId, quantity)) {
-            double totalPrice = calculateTotalPrice(productId, quantity);
-            double userCash = getUserCash();
-
-            if (userCash >= totalPrice) {
-                if (updateProductQuantity(productId, quantity) && updateUserCash(userCash - totalPrice)) {
-                    System.out.println("상품을 구매하였습니다.");
-
-                    // 보유 현금 확인
-                    System.out.println("보유 현금: " + getUserCash());
-                } else {
-                    System.out.println("상품 구매에 실패했습니다.");
-                }
-            } else {
-                System.out.println("보유 현금이 부족합니다.");
-            }
-        } else {
-            System.out.println("상품의 재고가 부족합니다.");
+            productIds.add(productId);
+            quantities.add(quantity);
         }
+ 		
+ 		
+ 		
+ 		try {
+ 			connection.setAutoCommit(false);
+ 			
+
+ 			
+ 			
+// 			String query1 = "SELECT price"
+// 					+ " FROM product"
+// 					+ " WHERE product_id = ?";
+// 			PreparedStatement statement1 = connection.prepareStatement(query1);
+// 			for (int productId : productIds) {
+// 			    statement1.setInt(1, productId);
+// 			    ResultSet resultSet = statement1.executeQuery();
+// 			    if (resultSet.next()) {
+// 			        int price = resultSet.getInt("price");
+// 			        product.setPrice(price);
+// 			        totalPrice += price;
+// 			        
+// 			    }
+// 			    
+// 			}
+ 			
+ 			
+ 			
+ 			
+ 			String query1 = "SELECT price, quantity "
+ 					+ " FROM product"
+ 					+ " WHERE product_id = ?";
+ 			PreparedStatement statement1 = connection.prepareStatement(query1);
+ 			for (int productId : productIds) {
+ 			    statement1.setInt(1, productId);
+ 			    ResultSet resultSet = statement1.executeQuery();
+ 			    if (resultSet.next()) {
+ 			        int price = resultSet.getInt("price");
+ 			        int quantity = resultSet.getInt("quantity");
+ 			        product.setPrice(price);
+ 			        
+ 			        // 현재 시간을 얻기 위한 날짜 포맷 지정
+ 			        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+ 			        String currentTime = dateFormat.format(new Date());
+
+ 			        
+ 			        
+ 			        totalPrice += price;
+ 			        
+ 			        System.out.println("\n========== 영수증 ==========");
+			        System.out.println("구매 상품 ID: " + productId);
+			        System.out.println("구매 수량: " + quantity);
+			        System.out.println("총 가격: " + totalPrice);
+			        System.out.println("구매 시간: " + currentTime);
+			        System.out.println("============================");
+ 			        
+ 			    }
+ 			    
+ 			}
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			
+ 			String query2 = "UPDATE product SET quantity = quantity - ? WHERE product_id = ?";
+ 			PreparedStatement statement2 = connection.prepareStatement(query2);
+
+ 			for (int i = 0; i < productIds.size(); i++) {
+ 			    statement2.setInt(1, quantities.get(i));
+ 			    statement2.setInt(2, productIds.get(i));
+ 			    int rows2 = statement2.executeUpdate();
+ 			    if (rows2 == 0) {
+ 			        throw new Exception("수량이 맞지 않습니다. 재고를 확인해주세요.");
+ 			    }
+ 			}
+
+ 			
+ 			String query3 = "UPDATE k_member"
+ 					+ " SET cash = cash - ?"
+ 					+ " WHERE id = ?";
+ 			PreparedStatement statement3 = connection.prepareStatement(query3);
+ 			statement3.setDouble(1, totalPrice);
+ 			statement3.setString(2, loginId);
+ 			int rows3=statement3.executeUpdate();
+ 			if(rows3==0) throw new Exception("잔액이 부족합니다.");
+ 			
+ 			
+ 			
+ 			
+// 			String query4 = "SELECT price"
+// 					+ " FROM product"
+// 					+ " WHERE product_id = ?";
+// 			PreparedStatement statement4 = connection.prepareStatement(query1);
+// 			for (int productId : productIds) {
+// 			    statement1.setInt(1, productId);
+// 			    ResultSet resultSet = statement1.executeQuery();
+// 			    if (resultSet.next()) {
+// 			        int price = resultSet.getInt("price");
+// 			        product.setPrice(price);
+// 			        
+// 			        
+// 			        
+// 			        
+// 			        totalPrice += price;
+// 			        
+// 			    }
+// 			    
+// 			}
+ 			
+ 			
+ 			
+ 			statement1.close();
+ 			statement2.close();
+ 			statement3.close();
+ 			
+ 			connection.commit();
+ 		}catch (Exception e) {
+ 			e.printStackTrace();
+ 			try {
+ 				connection.rollback();
+ 			}catch (SQLException e1) {
+ 				System.out.println("구매하기에 실패하셨습니다. 원하시는 상품의 재고를 확인해주세요.");
+ 			}
+ 		}finally {
+ 			if(connection != null) {
+ 				try {
+ 					connection.setAutoCommit(true);
+ 				} catch (SQLException e2) {}
+ 			}
+ 			showMenu();
+ 		}
     }
     
     
+    
+    
+    private void printReceipt(int productId, int quantity, double totalPrice) {
+        // 현재 시간을 얻기 위한 날짜 포맷 지정
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentTime = dateFormat.format(new Date());
 
+        System.out.println("\n========== 영수증 ==========");
+        System.out.println("구매 상품 ID: " + productId);
+        System.out.println("구매 수량: " + quantity);
+        System.out.println("총 가격: " + totalPrice);
+        System.out.println("구매 시간: " + currentTime);
+        System.out.println("============================");
+    }
+    
+
+    
+//    private void displayProductQuantity(int productId) {
+//        try {
+//            ResultSet resultSet = dbConnector.executeQuery("SELECT quantity FROM product WHERE product_id = " + productId);
+//            if (resultSet.next()) {
+//                int quantity = resultSet.getInt("quantity");
+//                System.out.println("상품 ID: " + productId + ", 재고: " + quantity);
+//            }
+//            resultSet.close();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+    
+    
+
+    
+    
+    
+    
     public void rechargeCash() {
         System.out.print("충전할 금액을 입력하세요: ");
         double cash = scanner.nextDouble();
@@ -206,19 +389,17 @@ public class Kiosk extends DBConnector {
         }
     }
 
-    private boolean isProductAvailable(int productId, int quantity) {
-        try {
-            
-        	
-        	ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
-            boolean isAvailable = resultSet.next();
-            resultSet.close();
-            return isAvailable;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    private boolean isProductAvailable(int productId, int quantity) {
+//        try {
+//            ResultSet resultSet = dbConnector.executeQuery("SELECT * FROM product WHERE product_id = " + productId + " AND quantity >= " + quantity);
+//            boolean isAvailable = resultSet.next();
+//            resultSet.close();
+//            return isAvailable;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
     private double calculateTotalPrice(int productId, int quantity) {
         try {
@@ -230,13 +411,14 @@ public class Kiosk extends DBConnector {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("calc문제");
         }
         return 0.0;
     }
 
     private double getUserCash() {
         try {
-            ResultSet resultSet = dbConnector.executeQuery("SELECT cash FROM k_member");
+            ResultSet resultSet = dbConnector.executeQuery("SELECT cash FROM k_member WHERE id = '" + loginId + "'");
             if (resultSet.next()) {
                 double cash = resultSet.getDouble("cash");
                 resultSet.close();
@@ -248,19 +430,23 @@ public class Kiosk extends DBConnector {
         return 0.0;
     }
 
-    private boolean updateProductQuantity(int productId, int quantity) {
-        try {
-            int updatedRows = dbConnector.executeUpdate("UPDATE product SET quantity = quantity - " + quantity + " WHERE product_id = " + productId);
-            return updatedRows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    private boolean updateProductQuantity(int productId, int quantity) {
+//        try {
+//            int updatedRows = dbConnector.executeUpdate("UPDATE product SET quantity = quantity - " + quantity + " WHERE product_id = " + productId);
+//            return updatedRows > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
     private boolean updateUserCash(double cash) {
         try {
-            int updatedRows = dbConnector.executeUpdate("UPDATE k_member SET cash = " + cash);
+            PreparedStatement statement = dbConnector.getConnection().prepareStatement("UPDATE k_member SET cash = ? WHERE id = ?");
+            statement.setDouble(1, cash);
+            statement.setString(2, loginId);
+            int updatedRows = statement.executeUpdate();
+            statement.close();
             return updatedRows > 0;
         } catch (SQLException e) {
             e.printStackTrace();

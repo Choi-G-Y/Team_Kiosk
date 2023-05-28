@@ -8,8 +8,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import b1_1Test.sec02_1.Product;
-
 // Kiosk.java
 
 
@@ -183,7 +181,7 @@ public class Kiosk extends DBConnector {
  		System.out.println("**전체 상품 목록 및 재고**");
  		displayProducts();
  		
-        System.out.println("구매할 품목 개수를 입력하세요:");
+        System.out.print("구매할 품목 개수를 입력하세요:");
         int itemCount = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
         

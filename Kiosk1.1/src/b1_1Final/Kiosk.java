@@ -274,6 +274,7 @@ public class Kiosk extends DBConnector {
  					connection.setAutoCommit(true);
  				} catch (SQLException e2) {}
  			}
+ 			System.out.println("보유 현금: " + getUserCash());
  			showMenu();
  		}
     }

@@ -1,3 +1,4 @@
+package secMain;
 //데이터베이스 연결을 위한 클래스입니다. 
 import java.sql.Connection;
 import java.sql.DriverManager;

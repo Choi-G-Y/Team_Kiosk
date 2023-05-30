@@ -11,7 +11,7 @@ DBConnector클래스에서 주석을 확인하여 계정과 비밀번호 수정 
 k_member 관련 SQL문 = 로그인 및 회원가입에 필요한 SQL문<br>
 product 관련 SQL문 = product관련 명령에 필요한 SQL문<br>
 <pre>
-관리자 모드 관련 SQL문
+--관리자 모드 관련 SQL문
 
 -------관리자모드 table 생성-------
 CREATE TABLE admin (
@@ -41,7 +41,7 @@ insert into k_member values ('kiosk', 12345, 30000);
 ===========================================================
 
 
-product 관련 SQL문
+--product 관련 SQL문
 -------product table 생성-------
 CREATE TABLE product (
     product_id NUMBER PRIMARY KEY,
@@ -49,6 +49,15 @@ CREATE TABLE product (
     price NUMBER(10,2),
     quantity NUMBER
 );
+
+
+ALTER table k_member
+ADD CONSTRAINT manager CHECK (cash>=0);
+
+ALTER table product
+ADD CONSTRAINT manager2 CHECK (quantity>=0);
+
+
 -------product table 물품 추가-------
 INSERT INTO product(product_id, product_name, price, quantity)
 VALUES(1, '펩카콜라', 1200, 50);
